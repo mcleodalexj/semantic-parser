@@ -33,7 +33,7 @@ class TestDateParser:
         assert result == expected
 
     def test_next_year(self):
-        result = DateParser("March 19 next year", "2024-03-17").extract_date()
+        result = DateParser("March 19th next year", "2024-03-17").extract_date()
         expected = datetime.datetime.fromisoformat("2025-03-19 00:00:00")
         assert result == expected
 
@@ -53,7 +53,7 @@ class TestDateParser:
         assert result == expected
 
     def test_exact_year(self):
-        result = DateParser("March 19, 1984 at 12:30 pm", "2024-03-17").extract_date()
+        result = DateParser("March 19th, 1984 at 12:30 pm", "2024-03-17").extract_date()
         expected = datetime.datetime.fromisoformat("1984-03-19 12:30:00")
         assert result == expected
 

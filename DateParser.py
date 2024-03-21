@@ -172,6 +172,9 @@ class DateParser:
         clean_string = re.sub(r'[^A-Za-z0-9 ]+', '', input_string).lower().strip()
         # Remove "the", "a", "an" as they do not impact the date
         clean_string = clean_string.replace(" the ", " ").replace(" a "," ").replace(" an "," ")
+        # remove st, rd, th and nd from numbers
+        clean_string = re.sub(r'(\d+)(st |rd |th |nd )', r'\1 ', clean_string)
+
         return clean_string
 
 
@@ -198,11 +201,10 @@ class DateParser:
         orig_day_val = self.base_date.weekday()
         orig_month_val = self.base_date.month
 
-        # print(self.tokens)
+        print(self.tokens)
 
         for index, token in enumerate(self.tokens):
 
-            print(self.tokens)
 
             # Set tokens to empty if used to avoid a scenario where 'march after next year'
             # could be doubly interpreted into 'march after next' and 'next year'.
@@ -308,18 +310,8 @@ class DateParser:
                         self.tokens[index+2] = ''
 
             # Logic for phrases indicating minutes
-            # "halfpast": 30,
-            # "half": {
-            #     "past": 30
-            # },
-            # "quarter": {
-            #     "till": 45,
-            #     "before": 45,
-            #     "after": 15,
-            #     "past": 15
-            # }
             if token in self.minutes:
-                if type(self.minutes.get(token)) == int:
+                if isinstance(self.minutes.get(token), int):
                     minute = self.minutes.get(token)
                     self.tokens[index] = ''
                 elif self.minutes[token].get(word_before):
@@ -368,6 +360,9 @@ class DateParser:
                         hour_modifier -= 12
                     elif hour > 24 or hour < 0:
                         print("invalid hour found")
+
+                print(self.tokens)
+
 
         if year is None:
             year = self.base_date.year
