@@ -1,19 +1,31 @@
-Parsing Components:
+<!-- Parsing Components:
  - Reader
     - In Memory VS Stream:
         - Go with In Memory as we don't expect a datetime format in english to approach an especially large size
  - Lexer
  - Parser
  - "Spellchecker"
- - Error Handler
+ - Error Handler -->
 
-Sample Phrases:
- - ‘Tomorrow at 11am'
- - 'This coming Tuesday at 9pm'
- - 'Next Tuesday at 9pm'
- - 'Teuesdey oif Nexx weak att 9 pm'
- - 'Tuesday next pm 9' -> Should this error?
- - 'half-past noon on the Tuesday after next'
+Note:
+ A full parser is way too large a scope for this task, as would be a trained model given the time constraints.  Aiming for a relatively complete system that works through programattic rules to determine the date instead. 
+
+Outside of scope:
+ - Stacking modifiers in a non-enlish way
+    - next next next next tuesday (vs tuesday 3 weeks from now)
+    - last tuesday after next (as a way to say next tuesday)
+ - Spelled word conversion to integer form.  For now we are assuming all pure numbers (not specific definitions like noon or midnight) come in their integer form
+
+Sample Input Phrases:
+ - "Tomorrow at 11am"
+ - "This coming Tuesday at 9pm"
+ - "Next Tuesday at 9pm"
+ - "Teuesdey oif Nexx weak att 9 pm"
+ - "Tuesday next pm 9" -> Should this error?
+ - "half-past noon on the Tuesday after next"
+
+Output:
+ - YYYY/MM/DD HH:MM
 
 Quick Time Term List:
  - Early (adv)
@@ -42,32 +54,3 @@ Quick Time Term List:
  - Month
  - Names of the Months
  - Year
-
-
-Stretch Terms:
- - Winter
- - Spring
- - Summer
- - Autumn
- - Season
- - Clock, Watch
- - Always
- - Often
- - Sometimes
- - Never
- - Again
- - Fast, Swift, Quick
- - Slow (adj)
- - to Hurry, Hasten
- - to Delay
- - to Begin; Beginning
- - to Last
- - End (n, temporal)
- - to Finish
- - to Cease
- - Ready (adj)
- - Time (period)
- - Age
- - New
- - Young
- - Old
