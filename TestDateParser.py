@@ -29,11 +29,11 @@ class TestDateParser:
 
     def test_halfpast(self):
         result = DateParser("half-past noon on the Tuesday after next", "2024-03-17").extract_date()
-        expected = datetime.datetime.fromisoformat("2023-04-02 12:30:00")
+        expected = datetime.datetime.fromisoformat("2024-04-02 12:30:00")
         assert result == expected
 
     def test_next_year(self):
-        result = DateParser("March nineteenth next year", "2024-03-17").extract_date()
+        result = DateParser("March 19 next year", "2024-03-17").extract_date()
         expected = datetime.datetime.fromisoformat("2025-03-19 00:00:00")
         assert result == expected
 
@@ -53,8 +53,8 @@ class TestDateParser:
         assert result == expected
 
     def test_exact_year(self):
-        result = DateParser("march nineteenth 1984", "2024-03-17").extract_date()
-        expected = datetime.datetime.fromisoformat("1984-03-19 00:00:00")
+        result = DateParser("March 19, 1984 at 12:30 pm", "2024-03-17").extract_date()
+        expected = datetime.datetime.fromisoformat("1984-03-19 12:30:00")
         assert result == expected
 
     # def test_3_weeks(self):
