@@ -57,15 +57,15 @@ class TestDateParser:
         expected = datetime.datetime.fromisoformat("1984-03-19 12:30:00")
         assert result == expected
 
-    # def test_3_weeks(self):
-    #     result = DateParser("Monday at Noon in 3 weeks", "2024-03-17").extract_date()
-    #     expected = datetime.datetime.fromisoformat("2025-03-17 12:00:00")
-    #     assert result == expected
+    def test_3_weeks(self):
+        result = DateParser("Monday at Noon in 3 weeks", "2024-03-17").extract_date()
+        expected = datetime.datetime.fromisoformat("2024-04-08 12:00:00")
+        assert result == expected
 
-    # def test_3_weeks_from_now(self):
-    #     result = DateParser("Monday at Noon 3 weeks from now", "2024-03-17").extract_date()
-    #     expected = datetime.datetime.fromisoformat("2025-03-17 12:00:00")
-    #     assert result == expected
+    def test_3_weeks_from_now(self):
+        result = DateParser("Monday at Noon 3 weeks from now", "2024-03-17").extract_date()
+        expected = datetime.datetime.fromisoformat("2024-04-08 12:00:00")
+        assert result == expected
 
     def test_10_minutes_from_now(self):
         result = DateParser("10 Minutes from now", "2024-03-17 12:00:00").extract_date()
@@ -105,4 +105,9 @@ class TestDateParser:
     def test_10_minutes_after(self):
         result = DateParser("10 minutes after 3 pm tomorrow", "2024-03-17 12:00:00").extract_date()
         expected = datetime.datetime.fromisoformat("2024-03-18 15:10:00")
+        assert result == expected
+
+    def test_misspelled(self):
+        result = DateParser("Teuesdey oif Nexx weak att 9 o'clock pm", "2024-03-18 00:00:00", True).extract_date()
+        expected = datetime.datetime.fromisoformat("2024-03-26 21:00:00")
         assert result == expected
