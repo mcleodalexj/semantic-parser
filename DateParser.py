@@ -46,7 +46,7 @@ class DateParser:
         'dec': 12
     }
 
-    monthPreMods = {
+    month_pre_mods = {
         'next': 1,
         'last': -1
     }
@@ -68,14 +68,18 @@ class DateParser:
                 "yesterday",
                 "tomorrow"
             ],
-        "ago": -1
+        "ago": -1,
+        "before": -1
     }
 
     # Modifications that shift the day by a week, IE next Tuesday is the next Tuesday + a week
     dayWeekPreMods = {
         "next": 7,
         "last": -7,
-        "coming": 0
+        "coming": 0,
+        "after": {
+            next: 7
+        }
     }
 
     dayWeekPostMods = {
@@ -109,7 +113,8 @@ class DateParser:
         "quarter": {
             "till": 45,
             "before": 45,
-            "after": 15
+            "after": 15,
+            "past": 15
         }
     }
 
@@ -140,7 +145,6 @@ class DateParser:
 
     years = {
         "year" : 0,
-        "years": 0,
         "in": 0,
     }
 
@@ -231,10 +235,9 @@ class DateParser:
                     modifier = int(word_before)
                     self.tokens[index-1] = ''
                 if word_after in self.valueModifier:
-                    if word_after == 'ago':
+                    if word_after != 'from':
                         modifier = modifier * -1
                         self.tokens[index+1] = ''
-                print(f'modifier is {modifier}')
                 if token == 'years':
                     year_modifier += modifier
                 elif token == 'months':
@@ -249,8 +252,6 @@ class DateParser:
                     minute_modifier += modifier
                 self.tokens[index] = ''
 
-
-
             # Logic for if we see a day of the week
             if token in self.days:
                 day_val = self.days.get(token)
@@ -263,9 +264,10 @@ class DateParser:
                     day_modifier += self.dayWeekPreMods.get(word_before)
                     self.tokens[index-1] = ''
                 elif self.dayWeekPostMods.get(word_after):
-                    pass
+                    if self.dayWeekPostMods[word_after].get(two_words_after):
+                        day_modifier += self.dayWeekPostMods[word_after].get(two_words_after)
 
-            # logic for if we see year or a year
+            # logic for if we see year or in
             if token in self.years:
                 if word_before in self.yearMods:
                     year_modifier += self.yearMods.get(word_before)
@@ -273,6 +275,7 @@ class DateParser:
                 elif re.match(r'\d{4}', word_after):
                     year = int(word_after)
                     self.tokens[index+1] = ''
+                self.tokens[index] = ''
 
             # Logic for if we see today/tomorrow/yesterday
             if token in self.dayRelative:
@@ -287,8 +290,41 @@ class DateParser:
                     month_modifier += month_val - orig_month_val
                 elif month_val < orig_month_val:
                     month_modifier += month_val + 12 - orig_month_val
-                if self.monthPreMods.get(word_before):
-                    year_modifier += self.monthPreMods.get(word_before)
+                if word_before:
+                    if self.month_pre_mods.get(word_before):
+                        year_modifier += self.month_pre_mods.get(word_before)
+                        self.tokens[index-1] = ''
+                    elif re.match(r'\d{1,2}', word_before):
+                        day = int(re.match(r'\d{1,2}', word_before))
+                        self.tokens[index-1] = ''
+                if word_after and re.match(r'\d{4}', word_after):
+                    year = int(word_after)
+                    self.tokens[index+1] = ''
+                elif word_after and re.match(r'\d{2}', word_after):
+                    day = int(word_after)
+                    self.tokens[index+1] = ''
+                    if word_after and re.match(r'\d{4}', two_words_after):
+                        year = int(two_words_after)
+                        self.tokens[index+2] = ''
+
+            # Logic for phrases indicating minutes
+            # "halfpast": 30,
+            # "half": {
+            #     "past": 30
+            # },
+            # "quarter": {
+            #     "till": 45,
+            #     "before": 45,
+            #     "after": 15,
+            #     "past": 15
+            # }
+            if token in self.minutes:
+                if type(self.minutes.get(token)) == int:
+                    minute = self.minutes.get(token)
+                    self.tokens[index] = ''
+                elif self.minutes[token].get(word_before):
+                    minute = self.minutes[token].get(word_before)
+                    self.tokens[index] = ''
                     self.tokens[index-1] = ''
 
             # Logic for if we see noon/midnight (can be expanded to dawn/dusk/morning/afternoon etc)
@@ -301,7 +337,7 @@ class DateParser:
                     day_modifier += 1
                 self.tokens[index] = ''
 
-            # Logic once we see AM or PM indicating an hour
+            # Logic once we see AM or PM indicating an hour and possibly minutes
             if token in self.hourIndicator:
                 hour_modifier = self.hourIndicator.get(token)
                 self.tokens[index] = ''
@@ -312,13 +348,25 @@ class DateParser:
                     else:
                         print("invalid hour found")
                 else:
-                    temp_hour = int(word_before)
-                    if temp_hour >= 0 and temp_hour < 13:
-                        hour = temp_hour
-                    elif temp_hour >= 13:
-                        hour_modifier = 0
-                        hour = temp_hour
-                    else:
+                    # 3-4 digit number before am/pm should be interpretted as HHMM
+                    if word_before and re.match(r'\d{3,4}', word_before):
+                        split = len(word_before)//2
+                        hour = int(word_before[0:split])
+                        minute = int(word_before[split:4])
+                        self.tokens[index-1] = ''
+                    elif word_before and two_words_before and re.match(r'\d{1,2}', word_before) \
+                    and re.match(r'\d{1,2}', two_words_before):
+                        hour = int(two_words_before)
+                        minute = int(word_before)
+                        self.tokens[index-1] = ''
+                        self.tokens[index-2] = ''
+                    elif word_before and re.match(r'\d{1,2}', word_before):
+                        hour = int(word_before)
+                        self.tokens[index-1] = ''
+                    # If someone asks for 23 PM just assume they want hour 23. Also handle 12 pm
+                    if hour >= 12 and hour < 24 and token == 'pm':
+                        hour_modifier -= 12
+                    elif hour > 24 or hour < 0:
                         print("invalid hour found")
 
         if year is None:
